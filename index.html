@@ -51,7 +51,7 @@
       <div class="lg:col-span-12 glass rounded-3xl p-6 card-hover">
         <h3 class="text-xl font-semibold mb-4 flex items-center gap-2"><i class="fas fa-cloud-sun text-amber-400"></i> Cuaca di Lokasimu</h3>
         <div id="weather" class="flex items-center justify-between">
-          <p class="text-zinc-400 animate-pulse">Mengumpulkan data GPS dan satelit cuaca...</p>
+          <p class="text-zinc-400 animate-pulse">Mengaktifkan radar GPS dan mencari nama kota Anda...</p>
         </div>
       </div>
 
@@ -81,14 +81,14 @@
 
       <div class="lg:col-span-3 glass rounded-3xl p-6 card-hover">
         <h3 class="text-2xl font-semibold mb-2"><i class="fas fa-music text-blue-400"></i> Audio Relaksasi</h3>
-        <p id="current-track-title" class="text-xs text-purple-300 mb-3 truncate">Silakan pilih instrumen:</p>
-        <audio id="audio-player" class="w-full mb-4" controls></audio>
+        <p id="current-track-title" class="text-xs text-emerald-400 mb-4 font-medium animate-pulse">Silakan ketuk salah satu suara:</p>
         <div class="grid grid-cols-1 gap-2 text-xs">
-          <button onclick="playTrack(0, '🌊 Ombak Pantai')" class="p-3 bg-white/5 hover:bg-purple-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🌊 Ombak Pantai</span> <i class="fas fa-play opacity-40"></i></button>
-          <button onclick="playTrack(1, '🌲 Atmosfer Hutan')" class="p-3 bg-white/5 hover:bg-purple-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🌲 Atmosfer Hutan</span> <i class="fas fa-play opacity-40"></i></button>
-          <button onclick="playTrack(2, '🎹 Piano Klasik')" class="p-3 bg-white/5 hover:bg-purple-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🎹 Piano Klasik</span> <i class="fas fa-play opacity-40"></i></button>
-          <button onclick="playTrack(3, '🔥 Derik Api Unggun')" class="p-3 bg-white/5 hover:bg-purple-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🔥 Derik Api Unggun</span> <i class="fas fa-play opacity-40"></i></button>
+          <button id="btn-audio-0" onclick="playTrack(0, '🌊 Ombak Pantai')" class="p-3 bg-white/5 hover:bg-blue-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🌊 Ombak Pantai</span> <i class="fas fa-play"></i></button>
+          <button id="btn-audio-1" onclick="playTrack(1, '🌲 Angin Hutan')" class="p-3 bg-white/5 hover:bg-green-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🌲 Angin Hutan</span> <i class="fas fa-play"></i></button>
+          <button id="btn-audio-2" onclick="playTrack(2, '🎹 Piano Klasik')" class="p-3 bg-white/5 hover:bg-purple-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🎹 Piano Klasik</span> <i class="fas fa-play"></i></button>
+          <button id="btn-audio-3" onclick="playTrack(3, '🔥 Api Unggun')" class="p-3 bg-white/5 hover:bg-amber-500/20 rounded-xl text-left flex justify-between items-center transition-all"><span>🔥 Api Unggun</span> <i class="fas fa-play"></i></button>
         </div>
+        <button onclick="stopTrack()" class="w-full mt-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 font-medium rounded-xl transition-all text-xs"><i class="fas fa-stop mr-1"></i> Matikan Audio</button>
       </div>
 
       <div class="lg:col-span-6 glass rounded-3xl p-8 card-hover flex flex-col justify-between">
@@ -107,6 +107,9 @@
   </div>
 
   <script>
+    // Global Audio Instance tunggal untuk menghindari bentrok suara
+    let currentAudio = null;
+
     // === Login / Profile System ===
     function checkLogin() {
       const user = localStorage.getItem('dash_username');
@@ -158,19 +161,27 @@
     }
     setInterval(updateClock, 1000);
 
-    // === Cuaca Otomatis Berbasis Geolocation Pengguna ===
+    // === 🔥 SOLUSI: CUACA DAN SEARCH NAMA KOTA ASLI PENGGUNA ===
     function loadWeather() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (position) => {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
           try {
-            // Mengambil cuaca lokal berdasarkan koordinat pengguna
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`);
-            const data = await res.json();
-            const temp = Math.round(data.current.temperature_2m);
-            const code = data.current.weathercode;
+            // 1. Ambil data cuaca dari Open-Meteo
+            const weatherRes = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&timezone=auto`);
+            const weatherData = await weatherRes.json();
+            const temp = Math.round(weatherData.current.temperature_2m);
+            const code = weatherData.current.weathercode;
             
+            // 2. Mengambil nama daerah real-time dari koordinat pengguna (Reverse Geocoding)
+            let city = "Lokasi Aktif";
+            try {
+              const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
+              const geoData = await geoRes.json();
+              city = geoData.address.city || geoData.address.town || geoData.address.county || "Daerah Anda";
+            } catch(e) { city = "Lokasi Anda"; }
+
             let emoji = "☀️", kondisi = "Cerah";
             if (code > 50) { emoji = "🌧️"; kondisi = "Hujan"; }
             else if (code > 3) { emoji = "☁️"; kondisi = "Berawan"; }
@@ -179,10 +190,10 @@
               <div class="text-6xl">${emoji}</div>
               <div class="text-right">
                 <div class="text-5xl font-light">${temp}°C</div>
-                <div class="text-purple-300 text-sm">${kondisi} (Lokasimu Aktif)</div>
+                <div class="text-purple-300 text-sm font-medium">${kondisi} — ${city}</div>
               </div>
             `;
-            document.getElementById('weather-header').innerHTML = `${emoji} ${temp}°C`;
+            document.getElementById('weather-header').innerHTML = `${emoji} ${city} (${temp}°C)`;
           } catch(e) {
             fallbackWeather();
           }
@@ -194,10 +205,11 @@
       document.getElementById('weather').innerHTML = `
         <div class="text-5xl">🇮🇩</div>
         <div class="text-right">
-          <div class="text-purple-300 text-sm">Lokasi GPS mati. Menggunakan standar WIB.</div>
+          <div class="text-5xl font-light">30°C</div>
+          <div class="text-purple-300 text-sm">Akses GPS Ditolak / Tidak Ada Internet</div>
         </div>
       `;
-      document.getElementById('weather-header').innerHTML = "🇮🇩 Cuaca Aktif";
+      document.getElementById('weather-header').innerHTML = "🇮🇩 Cuaca Standar";
     }
 
     // === Todo System (Disimpan Permanen di LocalStorage) ===
@@ -225,7 +237,6 @@
         input.value = '';
       }
     }
-    // Mengizinkan tekan Enter untuk menambah tugas
     document.getElementById('todo-input')?.addEventListener('keypress', (e) => { if(e.key === 'Enter') addTodo(); });
     
     function toggleTodo(i) { todos[i].done = !todos[i].done; saveAndRenderTodos(); }
@@ -254,22 +265,39 @@
     function resetPomo() { clearInterval(timer); isRunning = false; pomoTime = 25*60; updatePomo(); }
     function setPomo(min) { pausePomo(); pomoTime = min*60; updatePomo(); }
 
-    // === Sistem Musik Akurat & Valid ===
-    // Menggunakan link stream audio berlisensi gratis yang akurat sesuai kategorinya
+    // === 🔥 SOLUSI AUDIO: AUDIO PREMIUM LANGSUNG MAIN TANPA TERTUKAR ===
     const tracks = [
-      "https://actions.google.com/sounds/v1/water/sea_waves.ogg",               // Ombak Pantai Asli
-      "https://actions.google.com/sounds/v1/ambiences/morning_birds.ogg",       // Atmosfer Hutan (Burung)
-      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",          // Piano Instrument
-      "https://actions.google.com/sounds/v1/ambiences/fire_crackling.ogg"       // Derik Api Unggun Asli
+      "https://assets.mixkit.co/active_storage/sfx/2513/2513-84.wav",       // Suara Ombak Laut Murni Pas & Akurat
+      "https://assets.mixkit.co/active_storage/sfx/1239/1239-84.wav",       // Suara Deru Angin Hutan & Alam
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",      // Musik Alunan Piano Lembut
+      "https://assets.mixkit.co/active_storage/sfx/2432/2432-84.wav"        // Suara Api Unggun Menyala (Crackling Fire)
     ];
+
     function playTrack(i, title) {
-      const audio = document.getElementById('audio-player');
+      // Hentikan audio yang sedang menyala agar tidak saling bertumpuk
+      stopTrack();
+
       document.getElementById('current-track-title').textContent = "Memutar: " + title;
-      audio.src = tracks[i];
-      audio.play().catch(() => alert("Klik tombol Play pada bar player untuk memulai musik!"));
+      
+      // Buat pemutar audio virtual baru
+      currentAudio = new Audio(tracks[i]);
+      currentAudio.loop = true; // Agar suaranya berputar terus menerus (looping)
+      
+      // Jalankan suara langsung lewat tombol trigger halaman web
+      currentAudio.play().catch(e => {
+        document.getElementById('current-track-title').textContent = "Gagal memutar otomatis. Silakan coba klik sekali lagi!";
+      });
     }
 
-    // === Kumpulan Motivasi Acak (Anti-Kaku) ===
+    function stopTrack() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      document.getElementById('current-track-title').textContent = "Audio mati. Silakan pilih instrumen:";
+    }
+
+    // === Kumpulan Motivasi Acak ===
     const quotes = [
       {q:"Bukan gunung yang kita taklukkan, melainkan diri kita sendiri.", a:"Sir Edmund Hillary"},
       {q:"Konsistensi kecil setiap hari akan menghasilkan dampak yang luar biasa besar di masa depan.", a:"Atomic Habits"},
@@ -285,7 +313,7 @@
       document.getElementById('author').textContent = `— ${randomItem.a}`;
     }
 
-    // === Habit Tracker System (Disimpan Permanen di LocalStorage) ===
+    // === Habit Tracker System ===
     const habitMaster = ["Bangun Pagi & Ibadah", "Olahraga 15-30 Menit", "Minum Air Putih 3L", "Membaca Buku/Coding", "Evaluasi Tugas"];
     let habitState = JSON.parse(localStorage.getItem('saved_habits')) || {};
 
