@@ -1,50 +1,236 @@
 <!DOCTYPE html>
-<html>
+<html lang="id" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pintar</title>
-    <style>
-        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .card { background: #2d2d2d; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Pintar - Full Canggih</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .glass { background: rgba(255,255,255,0.08); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.1); }
+    .dark .glass { background: rgba(0,0,0,0.45); }
+    .card-hover:hover { transform: translateY(-4px); transition: all 0.3s; }
+  </style>
 </head>
-<body>
-
-<div class="card">
-    <h2 style="color: #4ade80;">Semangat Pagi! ☀️</h2>
-    <div id="jam" style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">00:00:00</div>
-
-    <input type="text" id="tugas" placeholder="Tambah tugas baru hari ini..." style="width: 70%; padding: 8px;">
-    <button onclick="tambahTugas()" style="padding: 8px;">Tambah</button>
-
-    <div id="listTugas" style="margin-top: 20px;"></div>
-
-    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
-        <p style="margin: 0 0 10px 0; font-size: 14px; color: #a8b2d1;">🎵 Musik Relaksasi</p>
-        <audio controls style="width: 100%; height: 35px;">
-            <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
-            Browser Anda tidak mendukung audio.
-        </audio>
+<body class="bg-gradient-to-br from-zinc-950 via-purple-950 to-black text-white min-h-screen">
+  <div class="max-w-7xl mx-auto p-6">
+    <div class="flex justify-between items-center mb-8">
+      <div class="flex items-center gap-3">
+        <h1 class="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">Dashboard Pintar</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <div id="weather-header" class="flex items-center gap-2 text-sm"></div>
+        <button onclick="toggleTheme()" class="p-4 bg-white/10 hover:bg-white/20 rounded-3xl transition-all">
+          <i id="theme-icon" class="fas fa-moon text-xl"></i>
+        </button>
+      </div>
     </div>
-</div>
 
-<script>
-    function updateJam() {
-        document.getElementById('jam').innerText = new Date().toLocaleTimeString();
+    <div class="text-center mb-10">
+      <h2 id="greeting" class="text-6xl font-light mb-3"></h2>
+      <div id="clock" class="text-7xl font-mono tracking-widest mb-2"></div>
+      <div id="date" class="text-xl text-purple-300"></div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6">
+      <div class="lg:col-span-12 glass rounded-3xl p-6 card-hover">
+        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2"><i class="fas fa-cloud-sun"></i> Cuaca Saat Ini</h3>
+        <div id="weather" class="flex items-center justify-between"></div>
+      </div>
+
+      <div class="lg:col-span-5 glass rounded-3xl p-6 card-hover">
+        <h3 class="text-2xl font-semibold mb-4 flex items-center gap-2"><i class="fas fa-list-check"></i> Tugas Hari Ini</h3>
+        <div class="flex gap-2 mb-4">
+          <input id="todo-input" type="text" class="flex-1 bg-white/10 rounded-2xl px-5 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 text-white" placeholder="Tambah tugas baru...">
+          <button onclick="addTodo()" class="px-8 bg-purple-600 hover:bg-purple-700 rounded-2xl font-medium">Tambah</button>
+        </div>
+        <ul id="todo-list" class="space-y-3 max-h-96 overflow-auto pr-2"></ul>
+      </div>
+
+      <div class="lg:col-span-4 glass rounded-3xl p-8 text-center card-hover">
+        <h3 class="text-2xl font-semibold mb-6"><i class="fas fa-hourglass-half"></i> Pomodoro Focus</h3>
+        <div id="pomo-time" class="text-8xl font-mono mb-10 text-purple-300">25:00</div>
+        <div class="flex gap-3 justify-center">
+          <button onclick="startPomo()" class="px-8 py-4 bg-green-600 hover:bg-green-700 rounded-2xl font-medium flex-1">▶ Mulai</button>
+          <button onclick="pausePomo()" class="px-8 py-4 bg-amber-600 hover:bg-amber-700 rounded-2xl font-medium flex-1">⏸ Jeda</button>
+          <button onclick="resetPomo()" class="px-8 py-4 bg-red-600 hover:bg-red-700 rounded-2xl font-medium flex-1">Reset</button>
+        </div>
+        <div class="mt-6 flex gap-2 justify-center text-sm">
+          <button onclick="setPomo(25)" class="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-xl">25 min</button>
+          <button onclick="setPomo(5)" class="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-xl">Istirahat</button>
+          <button onclick="setPomo(15)" class="px-5 py-2 bg-white/10 hover:bg-white/20 rounded-xl">Panjang</button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-3 glass rounded-3xl p-6 card-hover">
+        <h3 class="text-2xl font-semibold mb-4"><i class="fas fa-music"></i> Relaksasi</h3>
+        <audio id="audio-player" class="w-full mb-4" controls></audio>
+        <div class="grid grid-cols-1 gap-3 text-sm">
+          <button onclick="playTrack(0)" class="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-left flex justify-between items-center"><span>🌊 Ombak Pantai</span> <i class="fas fa-play text-xs opacity-50"></i></button>
+          <button onclick="playTrack(1)" class="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-left flex justify-between items-center"><span>🌲 Hutan</span> <i class="fas fa-play text-xs opacity-50"></i></button>
+          <button onclick="playTrack(2)" class="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-left flex justify-between items-center"><span>🎹 Piano</span> <i class="fas fa-play text-xs opacity-50"></i></button>
+          <button onclick="playTrack(3)" class="p-4 bg-white/10 hover:bg-white/20 rounded-2xl text-left flex justify-between items-center"><span>🔥 Api Unggun</span> <i class="fas fa-play text-xs opacity-50"></i></button>
+        </div>
+      </div>
+
+      <div class="lg:col-span-6 glass rounded-3xl p-8 card-hover">
+        <h3 class="text-2xl font-semibold mb-4">💡 Motivasi Hari Ini</h3>
+        <p id="quote" class="text-2xl italic leading-relaxed"></p>
+        <p id="author" class="text-right mt-6 text-purple-400"></p>
+      </div>
+
+      <div class="lg:col-span-6 glass rounded-3xl p-6 card-hover">
+        <h3 class="text-2xl font-semibold mb-4">📅 Habit Tracker</h3>
+        <div id="habit-list" class="grid grid-cols-2 gap-4"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // === Theme ===
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+      const icon = document.getElementById('theme-icon');
+      icon.classList.toggle('fa-moon');
+      icon.classList.toggle('fa-sun');
     }
-    setInterval(updateJam, 1000);
 
-    function tambahTugas() {
-        let input = document.getElementById('tugas').value;
-        if(input) {
-            let div = document.createElement('div');
-            div.innerHTML = input + ' <button onclick="this.parentElement.remove()">x</button>';
-            document.getElementById('listTugas').appendChild(div);
-            document.getElementById('tugas').value = '';
-        }
+    // === Clock & Greeting ===
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+      
+      const hour = now.getHours();
+      let greet = "Selamat Malam 🌙";
+      if (hour < 5) greet = "Selamat Dini Hari ✨";
+      else if (hour < 11) greet = "Semangat Pagi! ☀️";
+      else if (hour < 15) greet = "Selamat Siang! 🌤️";
+      else if (hour < 18) greet = "Selamat Sore! 🌅";
+      
+      document.getElementById('greeting').textContent = greet;
+      document.getElementById('date').textContent = now.toLocaleDateString('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
     }
-</script>
+    setInterval(updateClock, 1000);
+    updateClock();
 
+    // === Cuaca Real-time ===
+    async function getWeather() {
+      try {
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=-6.2&longitude=106.8&current=temperature_2m,weathercode&timezone=Asia/Jakarta');
+        const data = await res.json();
+        const temp = Math.round(data.current.temperature_2m);
+        const code = data.current.weathercode;
+        let emoji = "☀️";
+        if (code > 50) emoji = "🌧️";
+        else if (code > 3) emoji = "☁️";
+        
+        document.getElementById('weather').innerHTML = `
+          <div class="text-6xl">${emoji}</div>
+          <div>
+            <div class="text-5xl font-light">${temp}°C</div>
+            <div class="text-purple-300">Jakarta, Indonesia</div>
+          </div>
+        `;
+        document.getElementById('weather-header').innerHTML = `${emoji} ${temp}°C`;
+      } catch(e) {
+        document.getElementById('weather').innerHTML = `<p class="text-amber-400">Cuaca tidak dapat dimuat</p>`;
+      }
+    }
+
+    // === Todo ===
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    function renderTodos() {
+      const list = document.getElementById('todo-list');
+      list.innerHTML = todos.map((todo, i) => `
+        <li class="flex items-center gap-3 bg-white/5 p-4 rounded-2xl">
+          <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${i})" class="w-6 h-6 accent-purple-500">
+          <span class="${todo.done ? 'line-through opacity-60' : ''} flex-1">${todo.text}</span>
+          <button onclick="deleteTodo(${i})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button>
+        </li>
+      `).join('');
+    }
+    function addTodo() {
+      const input = document.getElementById('todo-input');
+      if (input.value.trim()) {
+        todos.push({text: input.value.trim(), done: false});
+        localStorage.setItem('todos', JSON.stringify(todos));
+        input.value = '';
+        renderTodos();
+      }
+    }
+    function toggleTodo(i) { todos[i].done = !todos[i].done; localStorage.setItem('todos', JSON.stringify(todos)); renderTodos(); }
+    function deleteTodo(i) { todos.splice(i,1); localStorage.setItem('todos', JSON.stringify(todos)); renderTodos(); }
+
+    // === Pomodoro ===
+    let pomoTime = 25*60, timer, isRunning = false;
+    function updatePomo() {
+      const m = Math.floor(pomoTime/60), s = pomoTime%60;
+      document.getElementById('pomo-time').textContent = `${m}:${s<10?'0':''}${s}`;
+    }
+    function startPomo() {
+      if (!isRunning) {
+        isRunning = true;
+        timer = setInterval(() => { 
+          if (pomoTime > 0) { 
+            pomoTime--; 
+            updatePomo(); 
+          } else { 
+            clearInterval(timer); 
+            isRunning = false;
+            alert("Waktu fokus habis!"); 
+          } 
+        }, 1000);
+      }
+    }
+    function pausePomo() { clearInterval(timer); isRunning = false; }
+    function resetPomo() { clearInterval(timer); isRunning = false; pomoTime = 25*60; updatePomo(); }
+    function setPomo(min) { pausePomo(); pomoTime = min*60; updatePomo(); }
+
+    // === Music ===
+    const tracks = [
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+      "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"
+    ];
+    function playTrack(i) {
+      const audio = document.getElementById('audio-player');
+      audio.src = tracks[i];
+      audio.play().catch(e => console.log("Klik interaksi diperlukan sebelum memutar"));
+    }
+
+    // === Quote ===
+    const quotes = [
+      {q:"Hidup adalah tentang membuat pilihan dan menikmati perjalanan.", a:"Grok"},
+      {q:"Konsistensi kecil setiap hari akan menghasilkan hasil yang luar biasa.", a:"Anonymous"},
+      {q:"Fokus pada kemajuan, bukan kesempurnaan.", a:"Anonymous"}
+    ];
+    function randomQuote() {
+      const q = quotes[Math.floor(Math.random()*quotes.length)];
+      document.getElementById('quote').textContent = `"${q.q}"`;
+      document.getElementById('author').textContent = `— ${q.a}`;
+    }
+
+    // === Habit ===
+    const habits = ["Bangun pukul 05:00", "Olahraga 30 menit", "Minum 3L air", "Membaca 20 halaman", "Meditasi"];
+    function renderHabits() {
+      document.getElementById('habit-list').innerHTML = habits.map(h => `
+        <label class="flex items-center gap-3 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20">
+          <input type="checkbox" class="w-6 h-6 accent-purple-500">
+          <span>${h}</span>
+        </label>
+      `).join('');
+    }
+
+    // Init
+    window.onload = () => {
+      renderTodos();
+      updatePomo();
+      randomQuote();
+      renderHabits();
+      getWeather();
+    };
+  </script>
 </body>
 </html>
