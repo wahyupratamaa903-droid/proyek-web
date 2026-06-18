@@ -1,204 +1,49 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Pintar Saya</title>
+    <title>Dashboard Pintar</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: #121214;
-            color: #e1e1e6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container {
-            background: #202024;
-            width: 100%;
-            max-width: 450px;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border: 1px solid #29292e;
-        }
-        h1 {
-            font-size: 24px;
-            color: #04d361;
-            margin-bottom: 5px;
-            text-align: center;
-        }
-        .waktu-box {
-            text-align: center;
-            margin-bottom: 25px;
-            padding: 10px;
-            background: #29292e;
-            border-radius: 8px;
-        }
-        #jam {
-            font-size: 32px;
-            font-weight: bold;
-            color: #8257e5;
-        }
-        #ucapan {
-            font-size: 14px;
-            color: #a8a8b3;
-        }
-        .input-box {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        input {
-            flex: 1;
-            padding: 12px;
-            background: #121214;
-            border: 1px solid #29292e;
-            border-radius: 8px;
-            color: #fff;
-            outline: none;
-        }
-        input:focus {
-            border-color: #8257e5;
-        }
-        button {
-            padding: 12px 20px;
-            background: #8257e5;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #9466ff;
-        }
-        ul {
-            list-style: none;
-        }
-        li {
-            background: #29292e;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        li.selesai {
-            text-decoration: line-through;
-            opacity: 0.5;
-            background: #121214;
-        }
-        .hapus-btn {
-            background: #transparent;
-            color: #f75a68;
-            border: none;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        body { background: #1a1a1a; color: white; font-family: sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .card { background: #2d2d2d; padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1 id="sapaan">Halo!</h1>
-    <div class="waktu-box">
-        <div id="jam">00:00:00</div>
-        <div id="ucapan">Memuat waktu...</div>
-    </div>
+<div class="card">
+    <h2 style="color: #4ade80;">Semangat Pagi! ☀️</h2>
+    <div id="jam" style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">00:00:00</div>
 
-    <div class="input-box">
-        <input type="text" id="tugasBaru" placeholder="Tambah tugas baru hari ini...">
-        <button onclick="tambahTugas()">Tambah</button>
-    </div>
+    <input type="text" id="tugas" placeholder="Tambah tugas baru hari ini..." style="width: 70%; padding: 8px;">
+    <button onclick="tambahTugas()" style="padding: 8px;">Tambah</button>
 
-    <ul id="daftarTugas"></ul>
+    <div id="listTugas" style="margin-top: 20px;"></div>
+
+    <div style="margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+        <p style="margin: 0 0 10px 0; font-size: 14px; color: #a8b2d1;">🎵 Musik Relaksasi</p>
+        <audio controls style="width: 100%; height: 35px;">
+            <source src="https://assets.mixkit.co/music/preview/mixkit-chill-bro-89.mp3" type="audio/mpeg">
+        </audio>
+    </div>
 </div>
 
 <script>
-    // 1. Fitur Jam & Ucapan Otomatis (Saling Bekerja Sama dengan Waktu Sistem)
-    function updateWaktu() {
-        const sekarang = new Date();
-        const jam = String(sekarang.getHours()).padStart(2, '0');
-        const menit = String(sekarang.getMinutes()).padStart(2, '0');
-        const detik = String(sekarang.getSeconds()).padStart(2, '0');
-        
-        document.getElementById('jam').innerText = `${jam}:${menit}:${detik}`;
-
-        let ucapan = "Selamat Malam";
-        let sapaan = "Selamat Istirahat! 🌙";
-        const jamInt = sekarang.getHours();
-
-        if (jamInt >= 5 && jamInt < 11) {
-            ucapan = "Selamat Pagi";
-            sapaan = "Semangat Pagi! ☀️";
-        } else if (jamInt >= 11 && jamInt < 15) {
-            ucapan = "Selamat Siang";
-            sapaan = "Tetap Produktif! 🚀";
-        } else if (jamInt >= 15 && jamInt < 18) {
-            ucapan = "Selamat Sore";
-            sapaan = "Jangan Lupa Mandi! ☕";
-        }
-
-        document.getElementById('ucapan').innerText = ucapan;
-        document.getElementById('sapaan').innerText = sapaan;
+    function updateJam() {
+        document.getElementById('jam').innerText = new Date().toLocaleTimeString();
     }
-    setInterval(updateWaktu, 1000);
-    updateWaktu();
-
-    // 2. Fitur To-Do List yang Terhubung dengan Penyimpanan Browser (LocalStorage)
-    let tugas = JSON.parse(localStorage.getItem('tugas')) || [];
-
-    function simpanDanTampilkan() {
-        localStorage.setItem('tugas', JSON.stringify(tugas));
-        const ul = document.getElementById('daftarTugas');
-        ul.innerHTML = '';
-
-        tugas.forEach((item, indeks) => {
-            const li = document.createElement('li');
-            li.className = item.selesai ? 'selesai' : '';
-            li.innerHTML = `
-                <span onclick="toggleSelesai(${indeks})">${item.teks}</span>
-                <button class="hapus-btn" onclick="hapusTugas(${indeks})">✕</button>
-            `;
-            ul.appendChild(li);
-        });
-    }
+    setInterval(updateJam, 1000);
 
     function tambahTugas() {
-        const input = document.getElementById('tugasBaru');
-        if (input.value.trim() === '') return;
-
-        tugas.push({ teks: input.value, selesai: false });
-        input.value = '';
-        simpanDanTampilkan();
+        let input = document.getElementById('tugas').value;
+        if(input) {
+            let div = document.createElement('div');
+            div.innerHTML = input + ' <button onclick="this.parentElement.remove()">x</button>';
+            document.getElementById('listTugas').appendChild(div);
+            document.getElementById('tugas').value = '';
+        }
     }
-
-    function toggleSelesai(indeks) {
-        tugas[indeks].selesai = !tugas[indeks].selesai;
-        simpanDanTampilkan();
-    }
-
-    function hapusTugas(indeks) {
-        tugas.splice(indeks, 1);
-        simpanDanTampilkan();
-    }
-
-    // Tampilkan data pertama kali saat web dibuka
-    simpanDanTampilkan();
 </script>
 
 </body>
 </html>
-
